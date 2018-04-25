@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2017/07/01 01:55:21 by alelievr         ###   ########.fr        #
+#    Updated: 2018/04/25 00:51:02 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,8 +16,10 @@
 
 #	Sources
 SRCDIR		=	src
-SRC			=	Main.cpp			\
-				TargetResolver.cpp	\
+SRC			=	Main.cpp				\
+				ClusterHostGlober.cpp	\
+				ReverseShell.cpp		\
+				Connection.cpp			\
 
 #	Objects
 OBJDIR		=	obj
@@ -44,7 +46,7 @@ NAME		=	multic
 
 #	Compiler
 WERROR		=	#-Werror
-CFLAGS		=	-Weverything -pedantic -ferror-limit=999
+CFLAGS		=	-Wall -Wextra -ferror-limit=999
 CPROTECTION	=	-z execstack -fno-stack-protector
 
 DEBUGFLAGS1	=	-ggdb -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls -O0

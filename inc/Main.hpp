@@ -18,10 +18,9 @@ class		Main
 		int							_flags;
 		int							:32;
 		std::string					_programName;
-		std::vector< std::string >	_targetIps;
 
-		void	_options(int *argc, char ***argv);
-		void	_usage(void) __attribute__((noreturn));
+		void	_Options(int *argc, char ***argv);
+		void	_Usage(void) __attribute__((noreturn));
 
 	public:
 		Main(void) = delete;
@@ -30,8 +29,6 @@ class		Main
 		virtual ~Main(void);
 
 		Main &	operator=(Main const & src) = delete;
-
-		int			Run(void);
 };
 
 #endif
