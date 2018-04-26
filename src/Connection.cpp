@@ -17,8 +17,6 @@ Connection::Connection(std::string a0) : _ip(a0), _connected(false)
 Connection::Connection(Connection const & src)
 {
 	*this = src;
-
-	_Init();
 }
 
 void		Connection::_Init(void) noexcept
@@ -54,6 +52,8 @@ void		Connection::Connect(const std::string & ip) noexcept
 	
 	if (connect(_socket, reinterpret_cast< const struct sockaddr * >(&sin), sizeof(sin)) == -1)
 		perror("connect"), exit(-1);
+
+	std::cout << "CONNECTED" << std::endl;
 
 	_connected = true;
 }
@@ -104,7 +104,7 @@ bool			Connection::Send(const std::string & message) const noexcept
 	if (!_connected)
 		return false;
 
-	return write(_socket, message.c_str(), message.length()) != -1;
+	return send(_socket, message.c_str(), message.length(), 0) != -1;
 }
 
 Connection &	Connection::operator=(Connection const & src)

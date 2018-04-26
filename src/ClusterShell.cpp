@@ -60,8 +60,6 @@ void		ClusterShell::_ReadFromShell(void) noexcept
 
 	cmd[r] = 0;
 
-	std::cout << "Sending command [" << cmd << "]" << std::endl;
-
 	for (const Connection & c : clientConnections)
 		c.Send(cmd);
 }
