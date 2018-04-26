@@ -6,7 +6,7 @@
 #    By: alelievr <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2014/07/15 15:13:38 by alelievr          #+#    #+#              #
-#    Updated: 2018/04/25 00:51:02 by alelievr         ###   ########.fr        #
+#    Updated: 2018/04/26 01:41:32 by alelievr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,6 +20,7 @@ SRC			=	Main.cpp				\
 				ClusterHostGlober.cpp	\
 				ReverseShell.cpp		\
 				Connection.cpp			\
+				ClusterShell.cpp		\
 
 #	Objects
 OBJDIR		=	obj

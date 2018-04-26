@@ -1,6 +1,7 @@
 #include "Main.hpp"
 #include "ClusterHostGlober.hpp"
 #include "ReverseShell.hpp"
+#include "ClusterShell.hpp"
 #include <unistd.h>
 
 Main::Main(int ac, char **av) : _flags(0), _programName(av[0])
@@ -23,6 +24,8 @@ Main::Main(int ac, char **av) : _flags(0), _programName(av[0])
 		std::cout << "ip targets:" << std::endl;
 		for (const std::string & cip : clusterIps.GetIps())
 			std::cout << cip << std::endl; 
+	
+		ClusterShell().Connect(clusterIps.GetIps());
 	}
 }
 
